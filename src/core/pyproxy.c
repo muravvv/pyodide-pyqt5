@@ -1470,10 +1470,10 @@ EM_JS_VAL(JsVal, create_once_callable, (PyObject * obj, bool may_syncify), {
       throw new Error("OnceProxy has already been destroyed");
     }
     alreadyCalled = true;
-    Module.finalizationRegistry.unregister(wrapper);
+    Module.pyProxyFinalizationRegistry.unregister(wrapper);
     _Py_DecRef(obj);
   };
-  Module.finalizationRegistry.register(wrapper, [ obj, undefined ], wrapper);
+  Module.pyProxyFinalizationRegistry.register(wrapper, [ obj, undefined ], wrapper);
   return wrapper;
 });
 

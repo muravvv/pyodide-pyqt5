@@ -69,7 +69,7 @@ declare var FinalizationRegistry: any;
 declare var globalThis: any;
 
 if (globalThis.FinalizationRegistry) {
-  Module.finalizationRegistry = new FinalizationRegistry(
+  Module.pyProxyFinalizationRegistry = new FinalizationRegistry(
     ({ ptr, cache }: PyProxyShared) => {
       if (cache) {
         // If we leak a proxy, we must transitively leak everything in its cache
@@ -101,8 +101,8 @@ if (globalThis.FinalizationRegistry) {
   //   }
   // });
 } else {
-  Module.finalizationRegistry = { register() {}, unregister() {} };
-  // Module.bufferFinalizationRegistry = finalizationRegistry;
+  Module.pyProxyFinalizationRegistry = { register() {}, unregister() {} };
+  // Module.bufferFinalizationRegistry = pyProxyFinalizationRegistry;
 }
 
 let pyproxy_alloc_map = new Map();
@@ -304,7 +304,7 @@ Module.pyproxy_new = pyproxy_new;
 function gc_register_proxy(shared: PyProxyShared) {
   const shared_copy = Object.assign({}, shared);
   shared.gcRegistered = true;
-  Module.finalizationRegistry.register(shared, shared_copy, shared);
+  Module.pyProxyFinalizationRegistry.register(shared, shared_copy, shared);
 }
 Module.gc_register_proxy = gc_register_proxy;
 
@@ -488,7 +488,7 @@ Module.pyproxy_destroy = function (
   const ptr = shared.ptr;
   shared.ptr = 0;
   if (shared.gcRegistered) {
-    Module.finalizationRegistry.unregister(shared);
+    Module.pyProxyFinalizationRegistry.unregister(shared);
   }
   pyproxy_decref_cache(shared.cache);
 
@@ -1079,7 +1079,7 @@ function* iter_helper(
   } catch (e) {
     API.fatal_error(e);
   } finally {
-    Module.finalizationRegistry.unregister(token);
+    Module.pyProxyFinalizationRegistry.unregister(token);
     _Py_DecRef(iterptr);
   }
   try {
@@ -1144,7 +1144,7 @@ export class PyIterableMethods {
       shared.cache.json_adaptor_map,
       isJsonAdaptor(this),
     );
-    Module.finalizationRegistry.register(result, [iterptr, undefined], token);
+    Module.pyProxyFinalizationRegistry.register(result, [iterptr, undefined], token);
     return result;
   }
 }
@@ -1194,7 +1194,7 @@ async function* aiter_helper(iterptr: number, token: {}): AsyncGenerator<any> {
       }
     }
   } finally {
-    Module.finalizationRegistry.unregister(token);
+    Module.pyProxyFinalizationRegistry.unregister(token);
     _Py_DecRef(iterptr);
   }
   if (_PyErr_Occurred()) {
@@ -1241,7 +1241,7 @@ export class PyAsyncIterableMethods {
     }
 
     let result = aiter_helper(iterptr, token);
-    Module.finalizationRegistry.register(result, [iterptr, undefined], token);
+    Module.pyProxyFinalizationRegistry.register(result, [iterptr, undefined], token);
     return result;
   }
 }
