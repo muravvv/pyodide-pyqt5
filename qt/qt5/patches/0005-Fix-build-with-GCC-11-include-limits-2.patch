@@ -1,0 +1,10 @@
+--- a/qtbase/src/corelib/text/qbytearraymatcher.h	2020-10-27 08:02:11.000000000 +0000
++++ b/qtbase/src/corelib/text/qbytearraymatcher.h	2024-07-07 20:17:34.204730938 +0000
+@@ -41,6 +41,7 @@
+ #define QBYTEARRAYMATCHER_H
+ 
+ #include <QtCore/qbytearray.h>
++#include <limits>
+ 
+ QT_BEGIN_NAMESPACE
+ 
