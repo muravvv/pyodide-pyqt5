@@ -4,84 +4,81 @@
   </a>
 </div>
 
-[![NPM Latest Release](https://img.shields.io/npm/v/pyodide)](https://www.npmjs.com/package/pyodide)
-[![PyPI Latest Release](https://img.shields.io/pypi/v/pyodide-build.svg)](https://pypi.org/project/pyodide-build/)
-[![Build Status](https://circleci.com/gh/pyodide/pyodide.png)](https://circleci.com/gh/pyodide/pyodide)
-[![Documentation Status](https://readthedocs.org/projects/pyodide/badge/?version=stable)](https://pyodide.readthedocs.io/?badge=stable)
+Pyodide with PyQt5
 
-Pyodide is a Python distribution for the browser and Node.js based on WebAssembly.
+This is not a standard pyodide package: PyQt5 is built statically into main pyodide module. For now Qt cannot be built as shared library (see [QTBUG-63925](https://bugreports.qt.io/browse/QTBUG-63925)).
 
-## What is Pyodide?
+## How to build (using docker)
 
-Pyodide is a port of CPython to WebAssembly/[Emscripten](https://emscripten.org/).
+1. Install Docker
+1. `./run_docker`
+1. `pip install sip`
+1. `pip install PyQt-builder`
+1. `make`
 
-Pyodide makes it possible to install and run Python packages in the browser with
-[micropip](https://micropip.pyodide.org/). Any pure
-Python package with a wheel available on PyPi is supported. Many packages with C
-extensions have also been ported for use with Pyodide. These include many
-general-purpose packages such as regex, PyYAML, lxml and scientific Python
-packages including NumPy, pandas, SciPy, Matplotlib, and scikit-learn.
+## Example
 
-Pyodide comes with a robust Javascript ⟺ Python foreign function interface so
-that you can freely mix these two languages in your code with minimal friction.
-This includes full support for error handling, async/await, and much more.
+`example.py` - PyQt application:
 
-When used inside a browser, Python has full access to the Web APIs.
+```python
+# -*- coding: utf-8 -*-
 
-## Try Pyodide (no installation needed)
+import sys
+from PyQt5.QtWidgets import QWidget, QPushButton, QApplication
+from PyQt5.QtCore import QCoreApplication
 
-Try Pyodide in a
-[REPL](https://pyodide.org/en/stable/console.html) directly in
-your browser. For further information, see the
-[documentation](https://pyodide.org/en/stable/).
+class Example(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
 
-## Getting Started
+    def initUI(self):
+        qbtn = QPushButton('Quit', self)
+        qbtn.clicked.connect(QCoreApplication.instance().quit)
+        qbtn.resize(qbtn.sizeHint())
+        qbtn.move(50, 50)
 
-Pyodide offers three different ways to get started depending on your needs and
-technical resources. These include:
+        self.setWindowTitle('Quit button')
+        self.show()
 
-- Use a hosted distribution of Pyodide: see the [Getting
-  Started](https://pyodide.org/en/stable/usage/quickstart.html) documentation.
-- Download a version of Pyodide from the [releases
-  page](https://github.com/pyodide/pyodide/releases/) and serve it
-  with a web server.
-- [Build Pyodide from source](https://pyodide.org/en/stable/development/building-from-sources.html)
-  - Build natively with `make`: primarily for Linux users who want to
-    experiment or contribute back to the project.
-  - [Use a Docker image](https://pyodide.org/en/stable/development/building-from-sources.html#using-docker):
-    recommended for Windows and macOS users and for Linux users who prefer a
-    Debian-based Docker image with the dependencies already installed.
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = Example()
+    #do not call "app.exec_()" here
+```
 
-## History
+HTML page:
 
-Pyodide was created in 2018 by [Michael Droettboom](https://github.com/mdboom)
-at Mozilla as part of the [Iodide
-project](https://github.com/iodide-project/iodide). Iodide is an experimental
-web-based notebook environment for literate scientific computing and
-communication.
+```html
+<!doctype html>
+<html>
+  <head>
+  </head>
+  <body>
+    <!-- pyqt application will be shown on this canvas -->
+    <canvas id="qtcanvas" oncontextmenu="event.preventDefault()" contenteditable="true"></canvas>
+	
+    <script type="text/javascript">
+      async function main(){
+        let indexURL = "./";
+        var canvas = document.querySelector('#qtcanvas');
 
-Iodide is no longer maintained. If you want to use Pyodide in an interactive
-client-side notebook, see [Pyodide notebook
-environments](https://pyodide.org/en/stable/project/related-projects.html#notebook-environments-ides-repls).
+        const { loadPyodide } = await import(indexURL + "pyodide.mjs");
+        // to facilitate debugging
+        globalThis.loadPyodide = loadPyodide;
 
-## Contributing
+        globalThis.pyodide = await loadPyodide({
+          canvasElements : [canvas],
+        });
 
-Please view the [contributing
-guide](https://pyodide.org/en/stable/development/contributing.html) for tips
-on filing issues, making changes, and submitting pull requests. Pyodide is an
-independent and community-driven open-source project. The decision-making
-process is outlined in the [Project
-governance](https://pyodide.org/en/stable/project/governance.html).
+        // load our pyqt application
+        pyodide.runPython(await (await fetch("./example.py")).text());
 
-## Communication
-
-- Blog: [blog.pyodide.org](https://blog.pyodide.org/)
-- Mailing list: [mail.python.org/mailman3/lists/pyodide.python.org/](https://mail.python.org/mailman3/lists/pyodide.python.org/)
-- Gitter: [gitter.im/pyodide/community](https://gitter.im/pyodide/community)
-- Twitter: [twitter.com/pyodide](https://twitter.com/pyodide)
-- Stack Overflow: [stackoverflow.com/questions/tagged/pyodide](https://stackoverflow.com/questions/tagged/pyodide)
-
-## License
-
-Pyodide uses the [Mozilla Public License Version
-2.0](https://choosealicense.com/licenses/mpl-2.0/).
+        // QApplication.exec() cannot be called from python code, so call it from JS here
+        pyodide.execQApplication(); 
+      }
+      main();
+    </script>
+  </body>
+</html>
+```
