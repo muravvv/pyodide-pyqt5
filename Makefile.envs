@@ -132,7 +132,7 @@ export MAIN_MODULE_LDFLAGS= $(LDFLAGS_BASE) \
 	-s EXPORT_NAME="'_createPyodideModule'" \
 	-s EXPORT_EXCEPTION_HANDLING_HELPERS \
 	-s EXCEPTION_CATCHING_ALLOWED=['we only want to allow exception handling in side modules'] \
-	-sEXPORTED_RUNTIME_METHODS='wasmTable,ERRNO_CODES' \
+	-s EXPORTED_RUNTIME_METHODS='wasmTable,ERRNO_CODES,UTF16ToString,stringToUTF16' \
 	-s USE_ZLIB \
 	-s USE_BZIP2 \
 	-s FORCE_FILESYSTEM=1 \
@@ -145,9 +145,14 @@ export MAIN_MODULE_LDFLAGS= $(LDFLAGS_BASE) \
 	-s NODEJS_CATCH_EXIT=0 \
 	-s NODEJS_CATCH_REJECTION=0 \
 	-s EXPORTED_FUNCTIONS='$(EXPORTS)'\
+	-s FULL_ES2=1 \
+	-s FULL_ES3=1 \
+	-s USE_WEBGL2=1 \
+	-s FETCH=1 \
 	\
 	-lpython$(PYMAJOR).$(PYMINOR)$(CPYTHON_ABI_FLAGS) \
 	-lffi \
+	-lembind \
 	-lstdc++ \
 	-lidbfs.js \
 	-lnodefs.js \
@@ -155,6 +160,8 @@ export MAIN_MODULE_LDFLAGS= $(LDFLAGS_BASE) \
 	-lworkerfs.js \
 	-lwebsocket.js \
 	-leventloop.js \
+	-lidbstore.js \
+	-lasync.js \
 	-lhiwire \
 	\
 	-lGL \

@@ -1,0 +1,74 @@
+--- a/sip/QtCore/QtCoremod.sip	2024-03-03 20:48:03.508989200 +0000
++++ b/sip/QtCore/QtCoremod.sip	2024-03-03 21:00:37.318471006 +0000
+@@ -179,10 +179,8 @@
+ %Include qresource.sip
+ %Include qrunnable.sip
+ %Include qsavefile.sip
+-%Include qsemaphore.sip
+ %Include qsequentialanimationgroup.sip
+ %Include qsettings.sip
+-%Include qsharedmemory.sip
+ %Include qsignalmapper.sip
+ %Include qsignaltransition.sip
+ %Include qsize.sip
+@@ -194,14 +192,12 @@
+ %Include qstorageinfo.sip
+ %Include qstring.sip
+ %Include qstringlistmodel.sip
+-%Include qsystemsemaphore.sip
+ %Include qtemporarydir.sip
+ %Include qtemporaryfile.sip
+ %Include qtextboundaryfinder.sip
+ %Include qtextcodec.sip
+ %Include qtextstream.sip
+ %Include qthread.sip
+-%Include qthreadpool.sip
+ %Include qtimeline.sip
+ %Include qtimer.sip
+ %Include qtimezone.sip
+--- a/sip/QtCore/qobject.sip	2023-10-12 10:54:48.804066000 +0000
++++ b/sip/QtCore/qobject.sip	2024-03-03 21:02:43.567041039 +0000
+@@ -333,11 +333,9 @@
+         {sipName_QObjectCleanupHandler, &sipType_QObjectCleanupHandler, -1, 14},
+         {sipName_QPluginLoader, &sipType_QPluginLoader, -1, 15},
+         {sipName_QSettings, &sipType_QSettings, -1, 16},
+-        {sipName_QSharedMemory, &sipType_QSharedMemory, -1, 17},
+         {sipName_QSignalMapper, &sipType_QSignalMapper, -1, 18},
+         {sipName_QSocketNotifier, &sipType_QSocketNotifier, -1, 19},
+         {sipName_QThread, &sipType_QThread, -1, 20},
+-        {sipName_QThreadPool, &sipType_QThreadPool, -1, 21},
+         {sipName_QTimeLine, &sipType_QTimeLine, -1, 22},
+         {sipName_QTimer, &sipType_QTimer, -1, 23},
+         {sipName_QTranslator, &sipType_QTranslator, -1, 24},
+--- a/sip/QtCore/qthread.sip	2023-10-12 10:54:48.843148500 +0000
++++ b/sip/QtCore/qthread.sip	2024-03-03 21:22:25.518172104 +0000
+@@ -48,8 +48,6 @@
+ 
+     bool isFinished() const;
+     bool isRunning() const;
+-    void setPriority(QThread::Priority priority);
+-    QThread::Priority priority() const;
+     void setStackSize(uint stackSize);
+     uint stackSize() const;
+     void exit(int returnCode = 0) /ReleaseGIL/;
+@@ -75,7 +73,6 @@
+ %If (Py_v3)
+     int exec() /ReleaseGIL/;
+ %End
+-    static void setTerminationEnabled(bool enabled = true);
+ 
+ public:
+     virtual bool event(QEvent *event);
+@@ -85,12 +82,9 @@
+     QAbstractEventDispatcher *eventDispatcher() const;
+     void setEventDispatcher(QAbstractEventDispatcher *eventDispatcher /Transfer/);
+ %If (Qt_5_2_0 -)
+-    void requestInterruption();
+ %End
+ %If (Qt_5_2_0 -)
+-    bool isInterruptionRequested() const;
+ %End
+ %If (Qt_5_5_0 -)
+-    int loopLevel() const;
+ %End
+ };

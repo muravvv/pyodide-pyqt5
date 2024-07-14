@@ -46,6 +46,39 @@ finally:
 PyObject*
 PyInit__pyodide_core(void);
 
+/* PyQt initializion functions */
+extern PyObject *PyInit_sip();
+extern PyObject *PyInit_Qt();
+extern PyObject *PyInit_QtCore();
+extern PyObject *PyInit_QtGui();
+extern PyObject *PyInit_QtWidgets();
+//extern PyObject *PyInit_QtSvg();
+
+void execLastQApp();  // Start QTs main loop
+
+// Wrapper modules
+
+static PyMethodDef PyQt5Methods[] = {
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef PyQt5 = {
+    PyModuleDef_HEAD_INIT,
+    "PyQt5",
+    0,
+    -1,
+    PyQt5Methods
+};
+
+PyMODINIT_FUNC PyInit_PyQt5(void)
+{
+    printf("in PyInit\r\n");
+    PyObject *mod = PyModule_Create(&PyQt5);
+    PyModule_AddStringConstant(mod, "__path__", "PyQt5");
+    PyModule_AddStringConstant(mod, "__file__", "PyQt5/__init__.py"); // required for qpycore_qt_conf in PyQt5.QtCore
+    return mod;
+}
+
 /**
  * Bootstrap steps here:
  *  1. Import _pyodide package (we depend on this in _pyodide_core)
@@ -62,7 +95,32 @@ main(int argc, char** argv)
   // This exits and prints a message to stderr on failure,
   // no status code to check.
   PyImport_AppendInittab("_pyodide_core", PyInit__pyodide_core);
+  
+  // Register PyQT modules to Python
+  PyImport_AppendInittab("PyQt5", PyInit_PyQt5);
+  PyImport_AppendInittab("PyQt5.sip", PyInit_sip);
+  PyImport_AppendInittab("PyQt5.Qt", PyInit_QtCore);
+  PyImport_AppendInittab("PyQt5.QtCore", PyInit_QtCore);
+  PyImport_AppendInittab("PyQt5.QtGui", PyInit_QtGui);
+  PyImport_AppendInittab("PyQt5.QtWidgets", PyInit_QtWidgets);
+//  PyImport_AppendInittab("PyQt5.QtSvg", PyInit_QtSvg);
+  
   initialize_python(argc, argv);
+  
+  // Fix import system to accomendate the shallow PyQt5 mock module
+  // Thanks to dgym @ https://stackoverflow.com/questions/39250524/programmatically-define-a-package-structure-in-embedded-python-3
+  PyRun_SimpleString(
+        "from importlib import abc, machinery \n" \
+        "import sys\n" \
+        "\n" \
+        "class Finder(abc.MetaPathFinder):\n" \
+        "    def find_spec(self, fullname, path, target=None):\n" \
+        "        if fullname in sys.builtin_module_names:\n" \
+        "            return machinery.ModuleSpec(fullname, machinery.BuiltinImporter)\n" \
+        "\n" \
+        "sys.meta_path.append(Finder())\n" \
+  );
+  
   emscripten_exit_with_live_runtime();
   return 0;
 }

@@ -72,6 +72,7 @@
       <a href="https://terminal.jcubic.pl/">jQuery Terminal</a>
     </div>
     <div id="loading"></div>
+    <canvas id="qtcanvas" oncontextmenu="event.preventDefault()" contenteditable="true" width="600" height="300" style="border: 1px solid red"></canvas>
     <script>
       "use strict";
 
@@ -97,6 +98,9 @@
             );
           }
         }
+        
+        var canvas = document.querySelector('#qtcanvas');
+        
         const { loadPyodide } = await import(indexURL + "pyodide.mjs");
         // to facilitate debugging
         globalThis.loadPyodide = loadPyodide;
@@ -108,6 +112,7 @@
             echo(result);
             return result;
           },
+          canvasElements : [canvas],
         });
         let { repr_shorten, BANNER, PyodideConsole } =
           pyodide.pyimport("pyodide.console");

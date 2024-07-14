@@ -1,0 +1,19 @@
+--- a/sip/QtWidgets/QtWidgetsmod.sip	2023-10-12 13:54:48.646764000 +0300
++++ b/sip/QtWidgets/QtWidgetsmod.sip	2024-03-10 17:20:54.760798889 +0300
+@@ -170,3 +170,16 @@
+ %Include qwizard.sip
+ %Include qpywidgets_qlist.sip
+ %Include qmaccocoaviewcontainer.sip
++
++// exec cannot be run from python code, because python stack cannot be unwound properly (see comments in API.maybe_fatal_error in error_handling.ts)
++// so add JavaScript API to call it
++%ModuleCode
++
++#include <emscripten.h>
++
++EMSCRIPTEN_KEEPALIVE extern "C" void execQApplication()
++{
++    QApplication::exec();
++}
++
++%End

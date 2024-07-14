@@ -31,6 +31,7 @@ export interface EmscriptenSettings {
   exited?: { readonly status: number; readonly toThrow: Error };
   noInitialRun?: boolean;
   INITIAL_MEMORY?: number;
+  qtCanvasElements: Element[];
 }
 
 /**
@@ -67,6 +68,7 @@ export function createSettings(config: ConfigType): EmscriptenSettings {
     // error anyways.
     locateFile: (path: string) => config.indexURL + path,
     instantiateWasm: getInstantiateWasmFunc(config.indexURL),
+    qtCanvasElements: config.canvasElements,
   };
   return settings;
 }

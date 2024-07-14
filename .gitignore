@@ -41,3 +41,11 @@ pytest-pyodide
 tools/symlinks
 xbuildenv/
 .pyodide-xbuildenv*
+
+qt/qt5/qt5
+qt/qt5/*.tar.xz
+qt/PyQt5-sip/PyQt5_sip
+qt/PyQt5-sip/*.tar.gz
+qt/PyQt5/PyQt5
+qt/PyQt5/*.tar.gz
+Makefile.qtenv

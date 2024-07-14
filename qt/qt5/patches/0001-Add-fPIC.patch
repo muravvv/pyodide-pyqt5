@@ -1,0 +1,10 @@
+--- a/qtbase/mkspecs/wasm-emscripten/qmake.conf	2024-03-03 18:30:02.752082200 +0000
++++ b/qtbase/mkspecs/wasm-emscripten/qmake.conf	2024-03-03 18:30:14.564556049 +0000
+@@ -88,4 +88,7 @@
+ 
+ QMAKE_DISTCLEAN            += *.html *.js *.wasm
+ 
++QMAKE_CFLAGS            += -fPIC
++QMAKE_CXXFLAGS          += -fPIC
++
+ load(qt_config)

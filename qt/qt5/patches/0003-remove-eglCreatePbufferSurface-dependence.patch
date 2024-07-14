@@ -1,0 +1,25 @@
+eglCreatePbufferSurface is not included into pyodide build. It is not implemented in Emscripten (see https://emscripten.org/docs/porting/multimedia_and_graphics/EGL-Support-in-Emscripten.html),
+so this code was not work on WASM platform before
+
+--- a/qtbase/src/platformsupport/eglconvenience/qeglplatformcontext.cpp	2020-10-27 08:02:11.000000000 +0000
++++ b/qtbase/src/platformsupport/eglconvenience/qeglplatformcontext.cpp	2024-03-09 13:14:40.574515803 +0000
+@@ -289,7 +289,7 @@
+     // PBUFFER_BIT set.
+     EGLConfig config = q_configFromGLFormat(m_eglDisplay, m_format, false, EGL_PBUFFER_BIT);
+ 
+-    return eglCreatePbufferSurface(m_eglDisplay, config, pbufferAttributes);
++    return EGL_NO_SURFACE;
+ }
+ 
+ void QEGLPlatformContext::destroyTemporaryOffscreenSurface(EGLSurface surface)
+--- a/qtbase/src/platformsupport/eglconvenience/qeglpbuffer.cpp	2020-10-27 08:02:11.000000000 +0000
++++ b/qtbase/src/platformsupport/eglconvenience/qeglpbuffer.cpp	2024-03-09 13:14:22.644515998 +0000
+@@ -87,7 +87,7 @@
+             EGL_NONE
+         };
+ 
+-        m_pbuffer = eglCreatePbufferSurface(m_display, config, attributes);
++        m_pbuffer = EGL_NO_SURFACE;
+ 
+         if (m_pbuffer != EGL_NO_SURFACE)
+             m_format = q_glFormatFromConfig(m_display, config);

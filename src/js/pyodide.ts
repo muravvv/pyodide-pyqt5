@@ -45,6 +45,7 @@ export type ConfigType = {
   packages: string[];
   _makeSnapshot: boolean;
   enableRunUntilComplete: boolean;
+  canvasElements: HTMLCanvasElement[];
 };
 
 /**
@@ -183,6 +184,10 @@ export async function loadPyodide(
       | Uint8Array
       | ArrayBuffer
       | PromiseLike<Uint8Array | ArrayBuffer>;
+    /**
+     * One or more canvas elements.
+     */
+    canvasElements?: HTMLCanvasElement[];
   } = {},
 ): Promise<PyodideInterface> {
   await initNodeModules();
@@ -204,6 +209,7 @@ export async function loadPyodide(
     packageCacheDir: indexURL,
     packages: [],
     enableRunUntilComplete: false,
+    canvasElements: [],
   };
   const config = Object.assign(default_config, options) as ConfigType;
   if (!config.env.HOME) {
@@ -237,6 +243,7 @@ export async function loadPyodide(
   // _createPyodideModule is specified in the Makefile by the linker flag:
   // `-s EXPORT_NAME="'_createPyodideModule'"`
   const Module = await _createPyodideModule(emscriptenSettings);
+  globalThis["Module"] = Module; // requred for Qt WASM platform plugin
   // Handle early exit
   if (emscriptenSettings.exited) {
     throw emscriptenSettings.exited.toThrow;

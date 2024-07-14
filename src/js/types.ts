@@ -288,6 +288,7 @@ export interface Module {
   FS: FS;
   LDSO: LDSO;
   canvas?: HTMLCanvasElement;
+  qtCanvasElements: Element[];
   addRunDependency(id: string): void;
   removeRunDependency(id: string): void;
   reportUndefinedSymbols(): void;
@@ -331,6 +332,7 @@ export interface Module {
   jsWrapperTag: any; // Should be WebAssembly.Tag
   getExceptionMessage(e: number): [string, string];
   handle_js_error(e: any): void;
+  _execQApplication(): void;
 }
 
 type LockfileInfo = {

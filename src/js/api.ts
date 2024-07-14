@@ -660,6 +660,16 @@ export class PyodideAPI {
     }
     return API.makeSnapshot();
   }
+
+  static execQApplication() {
+    try {
+      Module._execQApplication();
+    } catch (e) {
+      if (e !== "unwind") {
+        throw e;
+      }
+    }
+  }
 }
 
 /** @hidden */

@@ -1,0 +1,20 @@
+--- a/qtbase/src/corelib/thread/qreadwritelock.h	2020-10-27 08:02:11.000000000 +0000
++++ b/qtbase/src/corelib/thread/qreadwritelock.h	2024-03-03 21:07:00.186723130 +0000
+@@ -205,7 +205,7 @@
+ 
+     void unlock() noexcept { }
+     void relock() noexcept { }
+-    QReadWriteLock *readWriteLock() noexcept { return nullptr; }
++    QReadWriteLock *readWriteLock() const noexcept { return nullptr; }
+ 
+ private:
+     Q_DISABLE_COPY(QReadLocker)
+@@ -219,7 +219,7 @@
+ 
+     void unlock() noexcept { }
+     void relock() noexcept { }
+-    QReadWriteLock *readWriteLock() noexcept { return nullptr; }
++    QReadWriteLock *readWriteLock() const noexcept { return nullptr; }
+ 
+ private:
+     Q_DISABLE_COPY(QWriteLocker)

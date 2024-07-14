@@ -1,6 +1,7 @@
 PYODIDE_ROOT=$(abspath .)
 
 include Makefile.envs
+-include Makefile.qtenv
 
 .PHONY=check
 
@@ -117,18 +118,20 @@ $(CPYTHONINSTALL)/lib/libpyodide.a: src/core/libpyodide.a
 $(CPYTHONINSTALL)/.installed-pyodide: $(CPYTHONINSTALL)/include/pyodide/.installed $(CPYTHONINSTALL)/lib/libpyodide.a
 	touch $@
 
+PYQT5_LIBRARIES=$(PYODIDE_ROOT)/qt/PyQt5-sip/PyQt5_sip/dist/libsip.a $(PYODIDE_ROOT)/qt/PyQt5/PyQt5/dist/PyQt5/libQt.a $(PYODIDE_ROOT)/qt/PyQt5/PyQt5/dist/PyQt5/libQtCore.a $(PYODIDE_ROOT)/qt/PyQt5/PyQt5/dist/PyQt5/libQtGui.a $(PYODIDE_ROOT)/qt/PyQt5/PyQt5/dist/PyQt5/libQtWidgets.a
 
 dist/pyodide.asm.js: \
 	src/core/main.o  \
 	$(wildcard src/py/lib/*.py) \
 	$(CPYTHONLIB) \
-	$(CPYTHONINSTALL)/.installed-pyodide
+	$(CPYTHONINSTALL)/.installed-pyodide \
+	qt/PyQt5-sip/PyQt5_sip/dist/libsip.a qt/PyQt5/PyQt5/.complete Makefile.qtenv qt/qt5/qt5/linkargs/pyodide.js_plugin_import.o
 	@date +"[%F %T] Building pyodide.asm.js..."
 	[ -d dist ] || mkdir dist
    # TODO(ryanking13): Link libgl to a side module not to the main module.
    # For unknown reason, a side module cannot see symbols when libGL is linked to it.
 	embuilder build libgl
-	$(CXX) -o dist/pyodide.asm.js -lpyodide src/core/main.o $(MAIN_MODULE_LDFLAGS)
+	$(CXX) -o dist/pyodide.asm.js -lpyodide src/core/main.o $(QTLIBS) $(PYQT5_LIBRARIES) qt/qt5/qt5/linkargs/pyodide.js_plugin_import.o $(MAIN_MODULE_LDFLAGS)
 
 	if [[ -n $${PYODIDE_SOURCEMAP+x} ]] || [[ -n $${PYODIDE_SYMBOLS+x} ]] || [[ -n $${PYODIDE_DEBUG_JS+x} ]]; then \
 		cd dist && npx prettier -w pyodide.asm.js ; \
@@ -279,6 +282,7 @@ clean:
 	rm -fr src/js/generated
 	make -C packages clean
 	echo "The Emsdk, CPython are not cleaned. cd into those directories to do so."
+	rm -f Makefile.qtenv
 
 clean-python: clean
 	make -C cpython clean
@@ -286,6 +290,9 @@ clean-python: clean
 clean-all: clean
 	make -C emsdk clean
 	make -C cpython clean-all
+	make -C qt/qt5 clean
+	make -C qt/PyQt5-sip clean
+	make -C qt/PyQt5 clean
 
 src/core/jslib_asm.o: src/core/jslib_asm.s
 	$(CC) -o $@ -c $< $(MAIN_MODULE_CFLAGS)
@@ -334,3 +341,27 @@ check-emcc: emsdk/emsdk/.complete
 debug :
 	EXTRA_CFLAGS+=" -D DEBUG_F" \
 	make
+
+qt/qt5/qt5/.complete: emsdk/emsdk/.complete
+	date +"[%F %T] Building Qt5..."
+	make -C qt/qt5
+	date +"[%F %T] done building Qt5."
+
+qt/PyQt5-sip/PyQt5_sip/dist/libsip.a: $(CPYTHONLIB)
+	date +"[%F %T] Building sip..."
+	make -C qt/PyQt5-sip
+	date +"[%F %T] done building sip."
+
+qt/PyQt5/PyQt5/.complete: qt/qt5/qt5/.complete $(CPYTHONLIB)
+	date +"[%F %T] Building PyQt5..."
+	make -C qt/PyQt5
+	date +"[%F %T] done building PyQt5."
+
+Makefile.qtenv: qt/qt5/qt5/.complete
+	make -C qt/qt5 linkargs
+	grep "^[[:space:]]*LIBS[[:space:]]*=" qt/qt5/qt5/linkargs/Makefile | sed "s/LIBS/QTLIBS/" | sed "s/SUBLIBS/QTSUBLIBS/" | sed "s/-lz //" > Makefile.qtenv
+
+qt/qt5/qt5/linkargs/pyodide.js_plugin_import.cpp: Makefile.qtenv
+
+qt/qt5/qt5/linkargs/pyodide.js_plugin_import.o: qt/qt5/qt5/linkargs/pyodide.js_plugin_import.cpp $(CPYTHONLIB)
+	$(CXX) -o $@ -c $< $(MAIN_MODULE_CFLAGS) -I$(PYODIDE_ROOT)/qt/qt5/qt5/dist/include -I$(PYODIDE_ROOT)/qt/qt5/qt5/dist/include/QtCore
